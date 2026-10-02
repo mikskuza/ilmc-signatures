@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ILMC Email Signature</title>
+<style>
+/* Layout: one narrow column: employee details form, a white "email" canvas with the live signature, actions, install steps, source code. */
+:root {
+  --bg: #f4f5f9;
+  --panel: #ffffff;
+  --fg: #2b2c34;
+  --muted: #6b6e86;
+  --line: #dcdee8;
+  --accent: #4f72d9;
+  --accent-fg: #ffffff;
+  --field-bg: #ffffff;
+  --code-bg: #eceef5;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15161c; --panel: #1e1f27; --fg: #e6e7ee; --muted: #9a9db3;
+    --line: #2f313d; --accent: #7d97ec; --accent-fg: #11131a; --field-bg: #15161c; --code-bg: #1a1b22;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15161c; --panel: #1e1f27; --fg: #e6e7ee; --muted: #9a9db3;
+  --line: #2f313d; --accent: #7d97ec; --accent-fg: #11131a; --field-bg: #15161c; --code-bg: #1a1b22;
+  color-scheme: dark;
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 32px 48px; display: flex; flex-direction: column; gap: 28px; }
+header h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 4px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 65ch; }
+.label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0 0 12px; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 16px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field label { font-size: 0.85rem; font-weight: 600; }
+.field small { color: var(--muted); font-size: 0.78rem; }
+input { font: inherit; font-size: 0.95rem; color: var(--fg); background: var(--field-bg); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%; box-sizing: border-box; }
+input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.phone-row { display: grid; grid-template-columns: 5.5rem 1fr; gap: 8px; }
+
+/* The email canvas stays white in both themes on purpose: the signature is designed for a white Gmail message. */
+.canvas { background: #ffffff; border: 1px solid var(--line); border-radius: 10px; padding: 28px 24px; overflow-x: auto; }
+.canvas .fake-mail { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #40414a; margin: 0 0 22px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+button { font: inherit; font-size: 0.9rem; font-weight: 600; border-radius: 8px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-fg); }
+button.ghost { background: transparent; color: var(--accent); }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
+.note { font-size: 0.85rem; color: var(--muted); margin: 10px 0 0; max-width: 65ch; }
+
+ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 65ch; }
+pre { background: var(--code-bg); color: var(--fg); font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 0; max-height: 420px; }
+details summary { cursor: pointer; font-weight: 600; }
+details[open] summary { margin-bottom: 12px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;600&display=swap">
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>ILMC Email Signature</h1>
+    <p>Enter an employee's details, check the preview, then copy the signature or download a ready HTML file for that person.</p>
+  </header>
+
+  <section class="panel">
+    <p class="label">Employee details</p>
+    <div class="fields">
+      <div class="field">
+        <label for="f-name">Full name</label>
+        <input id="f-name" type="text" value="Erand Mulla" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="f-title">Job title</label>
+        <input id="f-title" type="text" value="CEO, Founder" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input id="f-email" type="email" value="erand@ilmcore.com" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="f-phone">Phone</label>
+        <div class="phone-row">
+          <input id="f-cc" type="text" value="+1" aria-label="Country code" autocomplete="off">
+          <input id="f-phone" type="tel" value="(212) 970-7400" autocomplete="off">
+        </div>
+        <small>Country code is used only for the tap-to-call link.</small>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="label">Preview in a message</p>
+    <div class="canvas">
+      <p class="fake-mail">Hi,<br>please find the materials from today's meeting attached.</p>
+      <div id="preview"></div>
+      <div id="copySrc" aria-hidden="true" style="position:absolute; left:-9999px; top:0;"></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="copySig">Copy signature</button>
+      <button type="button" class="ghost" id="download" hidden>Download HTML file</button>
+      <button type="button" class="ghost" id="copyCode">Copy HTML code</button>
+      <span class="status" id="status" role="status"></span>
+    </div>
+    <p class="note">The preview shows embedded copies of the logo and icons. The copied signature and downloaded file link to the Google Drive originals, so replacing a file on Drive updates every signature.</p>
+  </section>
+
+  <section class="panel">
+    <p class="label">How to add it in Gmail</p>
+    <ol>
+      <li>Click <b>Copy signature</b>, or open the downloaded HTML file in a browser and click its copy button.</li>
+      <li>In Gmail, click the gear icon → <b>See all settings</b> → General tab → <b>Signature</b>.</li>
+      <li>Click <b>Create new</b>, name the signature and paste it (Ctrl/Cmd + V).</li>
+      <li>Set it as the default for new emails and for replies.</li>
+      <li>Scroll to the bottom of the page and click <b>Save Changes</b>.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>Signature HTML code</summary>
+      <pre id="code"></pre>
+    </details>
+  </section>
+</div>
+
+<script>
+var IMG = {
+  logo: 'https://drive.google.com/uc?export=view&id=1Owb-4DD6E1CnPJ8BWcFoQ64X_3fm-sqq',
+  mail: 'https://drive.google.com/uc?export=view&id=1N4gcv9Idi6z_ibcZtQhNFDlVue7h27dd',
+  phone: 'https://drive.google.com/uc?export=view&id=1-FeLZmYG_KNtZnRHJHTAEuvxJPhfVkIJ'
+};
+var PREVIEW_IMG = {
+  logo: 'data:image/png;base64,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',
+  mail: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAqZJREFUeAHlVk2S0lAQ7g7MQDllFS4HN3AC8QbxBHoDsGqw3MHsjBvCxrgTdhZjFVzBE0y8AZ4AFg64M4vRIkDS9iM/vISZEPkpF/NV5ee91+mvX//kNcBDA6YVbOqjwiyXLyTJfNbOx7Ar8VtjWnIBqgSk8rDkX7tgLC5EGCqE3bhREeILY9pCIB2OAATUe9p5ez1OS4pg8d2CJFCyd5Dgsve+2PHUgedeB2gkkZiuC90TxOG/xE2G0LkgqigIDR6qwfzCtp8M9LKliMFSoVdRy9Dch1RAfPt4bpvsYlOeP82dNsVzRYwuvJQXObF09sB13fhRgx1R//izcZvPjSgWPgKoiGd2NUIoiJkYSmxXv25MWhnA17wDE1KAXayy0S0gV727VvGZuCv+KKxPdk0bvVIIDfB2f9MXcYP7CUts5LWQBSmmQhfvuh2X3yCe27NOTyuWV8IoZzHWRALGDRA/ljdcEX5yqmtxsISOR7b9fGnPO9J8wTeI42FMQkdfaUWUd7HkGPFEFTZhAlEBECubSzQ4s+eXHc7eYCbOkYUE+FldYwN0B6nPeaBKyyqTRj/gMiTC9hetaMIWZCEFfANe1I1pjWutGjNgTfguXQKmJg5wpZ0P+DEQcb3N5SuYyVhnf36PZZcehTiAT2TCHlDgP8Ejlsqmxm6EAyOi0+cKdhwS57cc9rsgopOixCGUTObgxI7r3L1jrsZhML9w5hU4NJSMrHNN7BJ9l6SqcGggNcJXF76unuImgn+Sy/2SRE3uFrrKno0Ab6hCsUaAT7qy0LlufT5MmvwH/LRF3zhpkUkKbPC9OcKtVbunPdW9dwkXxg0fCNiCI0Am9cYxeP2X0wRUxIFd2tbAJTCNQZzFRN+yoAwS29ttSGoEBPL2zNrlv/0w8BceOyL/SW9hFgAAAABJRU5ErkJggg==',
+  phone: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA05JREFUeAHlV81OGlEUPndAsd2UVRPRBT6B+ATiE5Q+gRgL6a520zh2AS7qNN0Udw1jIz6B8ASMTyBvIAsLSTfFpE2KlXt6DvN3GWZwWnXR9EvI3Dlz7/3O3z33APC/QQQFJaNfFAKfIULal8oTU19uwEMRl4xemx750IkIr+t7mZoqe2n08xJkXmpikJSi80lftOBPidlSADyeMbdr6pkVhTQ7ArxQJ6CAgUBsJkDbJyW6M/YCTVm26Y/lIYLY4B+pNnCEWSZzZ4zkKB3cTIzDI4qkULtkXBYhDrHwCUBomnVEbuMfIHQ8dRAL7th8u0xysSUA9xHghFzXVfbN0tbHZaNfiSJOeiOEK2884oWOWIOWkHbcKelW1cWmvthQ37cPeoWEgI8I9noErJYPelfB3JiwWGq+ZRMEUjyBCHBylY0vvHlhp3qR/ryXaV4Ph2sUno6ieKVI3yKJxY20fC4xdmn5oL9Jrqx6csAzhZSTq015UKGkOv2RSp1zXBvVlcGvn8MNz/UU9/nU/E6QePI4ve99A+f8UsxrdJZ3lIndupLVpXeXOdC086kNnWP3grxBSredxazMCis1ZbGtnTzxhgFSjTNcgZpcamK5rh0npvCtXkgt5NT1E8QIiSYELXBIw84lJ1ddX6pyXFXXzqXmCo71XmhGMMpGEh/ZlceKQ6qCXYggW/46kXVM6U7LQoidKb67BaQhJlRvaaBZ/JTOU5X5ioRArdmUZM36buY5xIBb2VQPhckiiScyEsIviLtCRH3YNi5r5J5XniCRXDPfPO3AQxPzkZhbSLUpeDln5iCBYm1WonH1+v4oVUxIXEUhBhTks8fXQ6umnN9biRkcHzmuTk7t5otES26EWe5WMgC/zntA7FC8DtVmYiZxKDlMx3wmqYKEfTStWMRR5GRGgy98HgVJ6Vba53NK7l6nl7yypmXqS3ZxgZgIJSfXI7gNgAu5pbo0ULMtczczLr0axAQnFV8S1GMdgm9aepIUG3GbwtgWq+CbibqUUwyPaZeKTkcKOOMGUNodq3Ph/IWrQxXgVhiwgrcklQ8/DHcidsFxJGuKFLf1KCW4LzvSM0X3/V6IVZQ+fM0h3uSFlFnqGle5iUQpW/f9h+Dfw2/k15vTcpWtTAAAAABJRU5ErkJggg=='
+};
+var WEBSITE = { url: 'https://www.ilmcore.com', label: 'www.ilmcore.com' };
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function val(id) { return document.getElementById(id).value.trim(); }
+
+function data() {
+  var cc = val('f-cc').replace(/[^\d]/g, '');
+  var digits = val('f-phone').replace(/[^\d]/g, '');
+  return {
+    name: val('f-name'),
+    title: val('f-title'),
+    email: val('f-email'),
+    phone: val('f-phone'),
+    tel: '+' + cc + digits
+  };
+}
+
+function buildSig(d, img) {
+  img = img || IMG;
+  var T = 'font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:16px;';
+  return [
+'<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; ' + T + '">',
+'  <tr>',
+'    <td valign="top" style="padding:0 0 0 1px; width:126px;">',
+'      <div style="padding-top:3px; ' + T + ' font-weight:bold; color:#40414a;">' + esc(d.name) + '</div>',
+'      <div style="padding-top:4px; ' + T + ' font-weight:normal; color:#8588a3;">' + esc(d.title) + '</div>',
+'      <div style="height:23px; line-height:23px; font-size:1px;">&nbsp;</div>',
+'      <img src="' + img.logo + '" alt="ILMC" width="102" height="22" style="display:block; width:102px; height:22px; border:0;">',
+'    </td>',
+'    <td valign="top" style="padding:3px 0 0 20px; width:1px;">',
+'      <div style="width:1px; height:78px; line-height:78px; font-size:1px; background-color:#e1e2ea;">&nbsp;</div>',
+'    </td>',
+'    <td valign="top" style="padding:0 0 0 36px;">',
+'      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">',
+'        <tr>',
+'          <td valign="middle" style="padding:0 10px 0 0; width:15px;">',
+'            <img src="' + img.mail + '" alt="Email" width="15" height="15" style="display:block; width:15px; height:15px; border:0;">',
+'          </td>',
+'          <td valign="middle" style="padding:0; ' + T + ' color:#8588a3; white-space:nowrap;">',
+'            <a href="mailto:' + esc(d.email) + '" style="color:#8588a3; text-decoration:none;">' + esc(d.email) + '</a>',
+'          </td>',
+'        </tr>',
+'        <tr><td colspan="2" style="height:7px; line-height:7px; font-size:1px;">&nbsp;</td></tr>',
+'        <tr>',
+'          <td valign="middle" style="padding:0 10px 0 0; width:15px;">',
+'            <img src="' + img.phone + '" alt="Phone" width="15" height="15" style="display:block; width:15px; height:15px; border:0;">',
+'          </td>',
+'          <td valign="middle" style="padding:0; ' + T + ' color:#8588a3; white-space:nowrap;">',
+'            <a href="tel:' + esc(d.tel) + '" style="color:#8588a3; text-decoration:none;">' + esc(d.phone) + '</a>',
+'          </td>',
+'        </tr>',
+'        <tr><td colspan="2" style="height:28px; line-height:28px; font-size:1px;">&nbsp;</td></tr>',
+'        <tr>',
+'          <td></td>',
+'          <td valign="middle" style="padding:0; ' + T + ' white-space:nowrap;">',
+'            <a href="' + WEBSITE.url + '" style="color:#6587e6; text-decoration:none;">' + WEBSITE.label + '</a>',
+'          </td>',
+'        </tr>',
+'      </table>',
+'    </td>',
+'  </tr>',
+'</table>'
+  ].join('\n');
+}
+
+function buildPlain(d) {
+  return [d.name, d.title, d.email, d.phone, WEBSITE.label].filter(Boolean).join('\n');
+}
+
+function buildFile(d, sig) {
+  var S = '<scr' + 'ipt>';
+  var E = '</scr' + 'ipt>';
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
+'<title>Email signature – ' + esc(d.name) + '</title>\n' +
+'<style>\n' +
+'  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 32px; color: #40414a; }\n' +
+'  .hint { max-width: 520px; font-size: 13px; line-height: 1.5; color: #8588a3; margin-bottom: 24px; }\n' +
+'  .hint b { color: #40414a; }\n' +
+'  button { font: inherit; font-size: 13px; padding: 8px 14px; margin-bottom: 24px; cursor: pointer; }\n' +
+'  .box { border: 1px dashed #d5d7e3; padding: 24px; display: inline-block; }\n' +
+'</style>\n</head>\n<body>\n\n' +
+'<div class="hint">\n  <b>How to use:</b> click "Copy signature", then in Gmail go to Settings → See all settings → Signature → Create new → paste (Ctrl/Cmd + V) → Save Changes at the bottom of the page.\n</div>\n\n' +
+'<button type="button" onclick="copySignature()">Copy signature</button>\n<br>\n\n' +
+'<div class="box">\n<!-- ====== SIGNATURE START ====== -->\n<div id="signature">\n' + sig + '\n</div>\n<!-- ====== SIGNATURE END ====== -->\n</div>\n\n' +
+S + '\nfunction copySignature() {\n  var el = document.getElementById("signature");\n  var sel = window.getSelection();\n  var range = document.createRange();\n  range.selectNodeContents(el);\n  sel.removeAllRanges();\n  sel.addRange(range);\n  try { document.execCommand("copy"); } catch (e) {}\n}\n' + E + '\n</body>\n</html>\n';
+}
+
+function slug(s) {
+  var map = { 'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z' };
+  var out = s.toLowerCase().replace(/[ąćęłńóśźż]/g, function (c) { return map[c]; })
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return out || 'employee';
+}
+
+var preview = document.getElementById('preview');
+var codeEl = document.getElementById('code');
+var statusEl = document.getElementById('status');
+var copySrc = document.getElementById('copySrc');
+var current = { d: null, sig: '' };
+
+function render() {
+  var d = data();
+  var sig = buildSig(d);
+  current = { d: d, sig: sig };
+  preview.innerHTML = buildSig(d, PREVIEW_IMG);
+  copySrc.innerHTML = sig;
+  codeEl.textContent = sig;
+  statusEl.textContent = '';
+}
+['f-name', 'f-title', 'f-email', 'f-cc', 'f-phone'].forEach(function (id) {
+  document.getElementById(id).addEventListener('input', render);
+});
+render();
+
+function say(msg) { statusEl.textContent = msg; }
+
+function selectAndCopy(node) {
+  var sel = window.getSelection();
+  var range = document.createRange();
+  range.selectNodeContents(node);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  var ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  return ok;
+}
+
+document.getElementById('copySig').addEventListener('click', function () {
+  var fallback = function () {
+    say(selectAndCopy(copySrc) ? 'Signature copied. Paste it into Gmail settings.' : 'Signature selected. Press Ctrl/Cmd + C to copy it.');
+  };
+  if (navigator.clipboard && window.ClipboardItem) {
+    var item = new ClipboardItem({
+      'text/html': new Blob([current.sig], { type: 'text/html' }),
+      'text/plain': new Blob([buildPlain(current.d)], { type: 'text/plain' })
+    });
+    navigator.clipboard.write([item]).then(function () {
+      say('Signature copied. Paste it into Gmail settings.');
+    }).catch(fallback);
+  } else {
+    fallback();
+  }
+});
+
+document.getElementById('copyCode').addEventListener('click', function () {
+  codeEl.closest('details').open = true;
+  var fallback = function () {
+    say(selectAndCopy(codeEl) ? 'HTML code copied.' : 'Code selected. Press Ctrl/Cmd + C to copy it.');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(current.sig).then(function () { say('HTML code copied.'); }).catch(fallback);
+  } else {
+    fallback();
+  }
+});
+
+var downloadBtn = document.getElementById('download');
+var downloads = null;
+function blobSave(filename, data, type) {
+  var url = URL.createObjectURL(new Blob([data], { type: type }));
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  say('File saved.');
+}
+if (!(window.claude && window.claude.use)) {
+  downloadBtn.hidden = false;
+} else {
+  window.claude.use('downloads').then(function (ns) {
+    downloads = ns;
+    if (ns) downloadBtn.hidden = false;
+  }).catch(function () {});
+}
+downloadBtn.addEventListener('click', function () {
+  var d = current.d;
+  if (!downloads) { blobSave('signature-' + slug(d.name) + '.html', buildFile(d, current.sig), 'text/html'); return; }
+  downloads.save({
+    filename: 'signature-' + slug(d.name) + '.html',
+    data: buildFile(d, current.sig)
+  }).then(function () {
+    say('File saved.');
+  }).catch(function (err) {
+    var code = err && err.code;
+    if (code === 'declined') say('Download cancelled.');
+    else if (code === 'rate_limited') say('A download prompt is already open. Try again in a moment.');
+    else { say('Downloads are not available here. Use Copy HTML code instead.'); downloadBtn.hidden = true; }
+  });
+});
+</script>
+
+</body>
+</html>
